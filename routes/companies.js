@@ -13,4 +13,17 @@ router.get('/', async (req, res, next) => {
     }
 })
 
+router.get('/:code', async (req, res, next) => {
+    try {
+        const { code } = req.params;
+        const { name, description } = req.body;
+        const result = await db.query(
+            `SELECT * FROM companies WHERE code =$1`, [code]
+        );
+        return res.json({ companies: result.rows[0] })
+    } catch (err) {
+        return next(err)
+    }
+})
+
 module.exports = router;
