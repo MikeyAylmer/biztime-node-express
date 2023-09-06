@@ -13,6 +13,7 @@ router.get('/', async (req, res, next) => {
     }
 })
 
+// GET route for object of company by code.
 router.get('/:code', async (req, res, next) => {
     try {
         const { code } = req.params;
@@ -20,7 +21,23 @@ router.get('/:code', async (req, res, next) => {
         const result = await db.query(
             `SELECT * FROM companies WHERE code =$1`, [code]
         );
+        if (result.rows.length === 0) {
+            throw new ExpressError(`Cant find company with code of ${code}`, 404)
+        }
         return res.json({ companies: result.rows[0] })
+    } catch (err) {
+        return next(err)
+    }
+})
+
+// POST route to create a new company.
+router.post('/', async (req, res, next) => {
+    try {
+        const { code, name, description } = req.body;
+        const result = await db.query(
+            `INSERT INTO companies (code, name, description) VALUES ($1, $2, $3) RETURNING *`, [code, name, description]
+        )
+        return res.status(201).json({ companies: result.rows[0] })
     } catch (err) {
         return next(err)
     }
