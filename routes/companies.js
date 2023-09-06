@@ -43,4 +43,26 @@ router.post('/', async (req, res, next) => {
     }
 })
 
+// PUT/ route for editing existing companies.
+router.put('/:code', async (req, res, next) => {
+    try {
+        const { code } = req.params;
+        const { name, description } = req.body;
+
+        const result = await db.query(
+            `UPDATE companies SET name=$1, description=$2
+            WHERE code = $3
+            RETURNING code, name, description`,
+            [name, description, code]
+        );
+        if (result.rows.length === 0) {
+            throw new ExpressError(`Cant update companies with code of ${code}`, 404)
+        }
+        return res.json({ companies: result.rows[0] })
+    } catch (err) {
+        return next(err)
+    }
+})
+
+
 module.exports = router;
