@@ -63,5 +63,19 @@ router.put('/:id', async (req, res, next) => {
         return next(err)
     }
 })
+
+// DELETE/ route to delete by id.
+router.delete('/:id', async (req, res, next) => {
+    try {
+        const { id } = req.params
+        const result = await db.query(`DELETE FROM invoices WHERE id=$1`, [id])
+        if (result.rowCount === 0) {
+            throw new ExpressError(`Can't delete invoice with id of ${id}`, 404)
+        }
+        return res.send({ message: "DELETED!" })
+    } catch (err) {
+        return next(err)
+    }
+})
 // export router for middleware.
 module.exports = router;
