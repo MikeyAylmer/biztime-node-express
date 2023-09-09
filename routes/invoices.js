@@ -77,5 +77,54 @@ router.delete('/:id', async (req, res, next) => {
         return next(err)
     }
 })
+
+// GET/ route to grab both data from companies and invoices table.
+router.get('/companies/:code', async (req, res, next) => {
+    try {
+        const { code } = req.params;
+
+        // Assuming there is a companies table
+        const result = await db.query(
+            `SELECT
+            c.code AS comp_code,
+            c.name AS company_name,
+            c.description AS company_description, AS invoices
+            FROM
+                companies c
+            LEFT JOIN
+                invoices i
+            ON
+                c.comp_code = i.comp_code
+            WHERE
+                c.comp_code =$1
+            GROUP BY
+                c.code, c.name, c.description;`,
+            [code]
+        );
+
+        if (result.rows.length === 0) {
+            // Handle the case where the company with the given code is not found
+            return res.status(404).json({ error: 'Company not found' });
+        }
+
+        // Assuming you want to return a single company's information
+        const company = result.rows[0];
+
+        // You can customize the response structure as needed
+        const responseObj = {
+            company: {
+                code: company.company_code,
+                name: company.company_name,
+                description: company.company_description,
+                invoices: company.invoices,
+            },
+        };
+
+        return res.json(responseObj);
+    } catch (err) {
+        return next(err);
+    }
+});
+
 // export router for middleware.
 module.exports = router;
